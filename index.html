@@ -171,7 +171,7 @@
     <h1>Mini agenda de cursos</h1>
     <p class="hint">
       Escribe un curso y pulsa Return/Enter. Dentro de cada curso, escribe tareas o notas y pulsa Return/Enter.
-      Marca el círculo para tachar sin borrar.
+      Marca el círculo para tachar sin borrar. Se sincroniza entre dispositivos con Firebase.
     </p>
 
     <div class="new-course">
@@ -185,30 +185,39 @@
     <div id="courses" class="courses"></div>
   </div>
 
-  <script>
-    const STORAGE_KEY = "mini_agenda_cursos_v1";
+  <script type="module">
+    // ===========================
+    // 1. CONFIGURAR FIREBASE AQUÍ
+    // ===========================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    function loadCourses() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
-      } catch (e) {
-        console.warn("No se pudo leer localStorage:", e);
-      }
-      return [];
-    }
+    // PON AQUÍ TU CONFIG DE FIREBASE (de la consola web)
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_AUTH_DOMAIN",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_STORAGE_BUCKET",
+      messagingSenderId: "TU_MESSAGING_SENDER_ID",
+      appId: "TU_APP_ID"
+    };
 
-    function saveCourses(courses) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-      } catch (e) {
-        console.warn("No se pudo guardar en localStorage:", e);
-      }
-    }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    let courses = loadCourses();
+    // Usaremos un único documento: agendas/default
+    const agendaRef = doc(db, "agendas", "default");
+
+    // ===========================
+    // 2. ESTADO LOCAL
+    // ===========================
+    let courses = [];
 
     function isEnterKey(e) {
       return (
@@ -219,11 +228,25 @@
       );
     }
 
+    // Guardar en Firestore
+    async function saveToFirebase() {
+      try {
+        await setDoc(agendaRef, { courses }, { merge: true });
+        // De paso, guardamos también en localStorage por si estás offline
+        localStorage.setItem("mini_agenda_cursos_v1", JSON.stringify(courses));
+      } catch (err) {
+        console.error("Error guardando en Firebase:", err);
+      }
+    }
+
+    // ===========================
+    // 3. RENDER
+    // ===========================
     function renderCourses() {
       const container = document.getElementById("courses");
       container.innerHTML = "";
 
-      if (courses.length === 0) {
+      if (!courses || courses.length === 0) {
         const msg = document.createElement("p");
         msg.className = "empty-msg";
         msg.textContent =
@@ -247,10 +270,10 @@
         deleteBtn.className = "delete-course";
         deleteBtn.title = "Eliminar curso";
         deleteBtn.textContent = "×";
-        deleteBtn.addEventListener("click", () => {
+        deleteBtn.addEventListener("click", async () => {
           if (confirm("¿Eliminar este curso y todas sus notas?")) {
             courses.splice(cIndex, 1);
-            saveCourses(courses);
+            await saveToFirebase();
             renderCourses();
           }
         });
@@ -261,7 +284,7 @@
         const columns = document.createElement("div");
         columns.className = "course-columns";
 
-        // Columna izquierda: temas / tareas
+        // ========== COLUMNA IZQUIERDA: TEMAS / TAREAS ==========
         const leftCol = document.createElement("div");
         leftCol.className = "course-column";
 
@@ -280,10 +303,11 @@
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
           checkbox.checked = !!task.done;
-          checkbox.dataset.courseIndex = cIndex;
-          checkbox.dataset.column = "left";
-          checkbox.dataset.itemIndex = tIndex;
-          checkbox.addEventListener("change", onToggleTask);
+          checkbox.addEventListener("change", async () => {
+            courses[cIndex].left[tIndex].done = checkbox.checked;
+            await saveToFirebase();
+            renderCourses();
+          });
 
           const span = document.createElement("span");
           span.textContent = task.text;
@@ -303,13 +327,16 @@
         leftInput.placeholder =
           "Nueva tarea (Ej: Tema: Heterogeneidad) y Return/Enter…";
 
-        const handleLeftInput = (e) => {
+        const handleLeftInput = async (e) => {
           if (isEnterKey(e)) {
             e.preventDefault();
             const text = leftInput.value.trim();
             if (text !== "") {
-              addTask(cIndex, "left", text);
+              if (!courses[cIndex].left) courses[cIndex].left = [];
+              courses[cIndex].left.push({ text, done: false });
               leftInput.value = "";
+              await saveToFirebase();
+              renderCourses();
             }
           }
         };
@@ -317,7 +344,11 @@
         leftInput.addEventListener("keydown", handleLeftInput);
         leftInput.addEventListener("keypress", handleLeftInput);
 
-        // Columna derecha: preguntas / notas
+        leftCol.appendChild(leftTitle);
+        leftCol.appendChild(leftList);
+        leftCol.appendChild(leftInput);
+
+        // ========== COLUMNA DERECHA: PREGUNTAS / NOTAS ==========
         const rightCol = document.createElement("div");
         rightCol.className = "course-column";
 
@@ -336,10 +367,11 @@
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
           checkbox.checked = !!task.done;
-          checkbox.dataset.courseIndex = cIndex;
-          checkbox.dataset.column = "right";
-          checkbox.dataset.itemIndex = tIndex;
-          checkbox.addEventListener("change", onToggleTask);
+          checkbox.addEventListener("change", async () => {
+            courses[cIndex].right[tIndex].done = checkbox.checked;
+            await saveToFirebase();
+            renderCourses();
+          });
 
           const span = document.createElement("span");
           span.textContent = task.text;
@@ -359,13 +391,16 @@
         rightInput.placeholder =
           "Nueva nota (Ej: ¿Profe, cuándo serán los finales?) y Return/Enter…";
 
-        const handleRightInput = (e) => {
+        const handleRightInput = async (e) => {
           if (isEnterKey(e)) {
             e.preventDefault();
             const text = rightInput.value.trim();
             if (text !== "") {
-              addTask(cIndex, "right", text);
+              if (!courses[cIndex].right) courses[cIndex].right = [];
+              courses[cIndex].right.push({ text, done: false });
               rightInput.value = "";
+              await saveToFirebase();
+              renderCourses();
             }
           }
         };
@@ -377,6 +412,7 @@
         rightCol.appendChild(rightList);
         rightCol.appendChild(rightInput);
 
+        // Añadimos las dos columnas al card
         columns.appendChild(leftCol);
         columns.appendChild(rightCol);
 
@@ -386,66 +422,85 @@
       });
     }
 
+    // ===========================
+    // 4. LÓGICA DE CURSOS
+    // ===========================
     function addCourse(name) {
       courses.push({
-        name: name,
+        name,
         left: [],
         right: []
       });
-      saveCourses(courses);
-      renderCourses();
+      return saveToFirebase().then(renderCourses);
     }
 
-    function addTask(courseIndex, column, text) {
-      if (!courses[courseIndex]) return;
-      if (!courses[courseIndex][column]) {
-        courses[courseIndex][column] = [];
+    // ===========================
+    // 5. INICIO: LEER FIREBASE Y ESCUCHAR CAMBIOS
+    // ===========================
+    async function init() {
+      // Cargar de localStorage como backup
+      try {
+        const local = localStorage.getItem("mini_agenda_cursos_v1");
+        if (local) {
+          courses = JSON.parse(local) || [];
+        }
+      } catch (e) {
+        courses = [];
       }
-      courses[courseIndex][column].push({
-        text: text,
-        done: false
+      renderCourses();
+
+      // Cargar desde Firebase una vez
+      try {
+        const snap = await getDoc(agendaRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (Array.isArray(data.courses)) {
+            courses = data.courses;
+            localStorage.setItem(
+              "mini_agenda_cursos_v1",
+              JSON.stringify(courses)
+            );
+            renderCourses();
+          }
+        } else {
+          await setDoc(agendaRef, { courses: [] });
+        }
+      } catch (e) {
+        console.error("Error inicial leyendo Firebase:", e);
+      }
+
+      // Escuchar cambios en tiempo real
+      onSnapshot(agendaRef, (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (Array.isArray(data.courses)) {
+            courses = data.courses;
+            localStorage.setItem(
+              "mini_agenda_cursos_v1",
+              JSON.stringify(courses)
+            );
+            renderCourses();
+          }
+        }
       });
-      saveCourses(courses);
-      renderCourses();
-    }
 
-    function onToggleTask(e) {
-      const cIndex = parseInt(e.target.dataset.courseIndex, 10);
-      const column = e.target.dataset.column;
-      const tIndex = parseInt(e.target.dataset.itemIndex, 10);
-
-      if (
-        !courses[cIndex] ||
-        !courses[cIndex][column] ||
-        !courses[cIndex][column][tIndex]
-      ) {
-        return;
-      }
-
-      courses[cIndex][column][tIndex].done = e.target.checked;
-      saveCourses(courses);
-      renderCourses();
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
+      // Input de nuevo curso
       const newCourseInput = document.getElementById("new-course-input");
-
-      const handleCourseInput = (e) => {
+      const handleCourseInput = async (e) => {
         if (isEnterKey(e)) {
           e.preventDefault();
           const text = newCourseInput.value.trim();
           if (text !== "") {
-            addCourse(text);
             newCourseInput.value = "";
+            await addCourse(text);
           }
         }
       };
-
       newCourseInput.addEventListener("keydown", handleCourseInput);
       newCourseInput.addEventListener("keypress", handleCourseInput);
+    }
 
-      renderCourses();
-    });
+    init();
   </script>
 </body>
 </html>
