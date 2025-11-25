@@ -13,11 +13,7 @@
       --text-muted: #6b7280;
       --border: #e5e7eb;
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 0;
@@ -25,170 +21,69 @@
       background: var(--bg);
       color: var(--text-main);
     }
-
     .app {
       max-width: 960px;
       margin: 0 auto;
       padding: 16px;
     }
-
-    h1 {
-      margin: 0 0 4px 0;
-      font-size: 22px;
-    }
-
-    .hint {
-      margin: 0 0 16px 0;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .new-course {
-      margin-bottom: 16px;
-    }
-
+    h1 { margin: 0 0 4px 0; font-size: 22px; }
+    .hint { margin: 0 0 16px 0; font-size: 13px; color: var(--text-muted); }
+    .new-course { margin-bottom: 16px; }
     input[type="text"] {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      font-size: 14px;
-      outline: none;
-      background: #ffffff;
+      width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 14px;
+      border: 1px solid var(--border); outline: none;
     }
-
-    input[type="text"]:focus {
-      border-color: var(--accent);
-    }
-
-    .courses {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
+    input[type="text"]:focus { border-color: var(--accent); }
+    .courses { display: flex; flex-direction: column; gap: 12px; }
     .course-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 12px 12px 10px 12px;
-      border: 1px solid var(--border);
+      background: var(--card); border-radius: 12px;
+      padding: 12px; border: 1px solid var(--border);
     }
-
     .course-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      gap: 8px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px; gap: 8px;
     }
-
     .course-title {
-      font-size: 18px;
-      text-decoration: underline;
-      text-underline-offset: 3px;
+      font-size: 18px; text-decoration: underline; text-underline-offset: 3px;
     }
-
     .delete-course {
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      font-size: 16px;
-      line-height: 1;
-      color: var(--text-muted);
-      padding: 2px 4px;
+      border: none; background: transparent; cursor: pointer; font-size: 16px;
+      color: var(--text-muted); padding: 2px 4px;
     }
-
     .course-columns {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      display: flex; flex-direction: column; gap: 10px;
     }
-
     @media (min-width: 640px) {
-      .course-columns {
-        flex-direction: row;
-      }
+      .course-columns { flex-direction: row; }
     }
-
-    .course-column {
-      flex: 1;
-      min-width: 0;
-    }
-
+    .course-column { flex: 1; min-width: 0; }
     .column-title {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin: 0 0 4px 0;
+      font-size: 13px; color: var(--text-muted); margin: 0 0 4px 0;
     }
-
     ul.task-list {
-      list-style: none;
-      margin: 0 0 4px 0;
-      padding: 0;
+      list-style: none; padding: 0; margin: 0 0 4px 0;
     }
-
     .task {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 2px 0;
-      font-size: 14px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; padding: 2px 0;
     }
-
-    .task input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      margin: 0;
-    }
-
-    .task span {
-      display: inline-block;
-      word-break: break-word;
-    }
-
-    .task-done span {
-      text-decoration: line-through;
-      opacity: 0.6;
-    }
-
-    .empty-msg {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin: 0 0 4px 0;
-    }
-
-    .new-task-input {
-      font-size: 13px;
-      padding: 6px 8px;
-    }
+    .task input { width: 16px; height: 16px; }
+    .task-done span { text-decoration: line-through; opacity: 0.6; }
+    .new-task-input { font-size: 13px; padding: 6px 8px; }
   </style>
 </head>
 <body>
   <div class="app">
     <h1>Mini agenda de cursos</h1>
-    <p class="hint">
-      Escribe un curso y pulsa Return/Enter. Dentro de cada curso, escribe tareas o notas y pulsa Return/Enter.
-      Marca el círculo para tachar sin borrar. Se sincroniza entre dispositivos con Firebase.
-    </p>
-
+    <p class="hint">Escribe un curso y pulsa Return/Enter. Se sincroniza entre dispositivos con Firebase.</p>
     <div class="new-course">
-      <input id="new-course-input" type="text"
-             autocomplete="off"
-             autocapitalize="sentences"
-             inputmode="text"
-             placeholder="Nuevo curso (por ejemplo: Econometría) y Return/Enter…" />
+      <input id="new-course-input" type="text" placeholder="Nuevo curso y Enter…" />
     </div>
-
     <div id="courses" class="courses"></div>
   </div>
 
   <script type="module">
-    // ===========================
-    // 1. CONFIGURAR FIREBASE AQUÍ
-    // ===========================
+    // IMPORTS DESDE FIREBASE
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore,
@@ -198,65 +93,46 @@
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // PON AQUÍ TU CONFIG DE FIREBASE (de la consola web)
+    // ============================================================
+    // 🔥 TU CONFIGURACIÓN REAL DE FIREBASE — YA COLOCADA AQUÍ
+    // ============================================================
     const firebaseConfig = {
-  apiKey: "AIzaSyC06Tx-JKDMP8gxhVn-TrWr-mwUEqJ99bU",
-  authDomain: "agenda-1fdcf.firebaseapp.com",
-  projectId: "agenda-1fdcf",
-  storageBucket: "agenda-1fdcf.firebasestorage.app",
-  messagingSenderId: "453064478678",
-  appId: "1:453064478678:web:9e84ea027c92e09c4d5e77",
-  measurementId: "G-BHCVE6FKE6"
-};
+      apiKey: "AIzaSyC06Tx-JKDMP8gxhVn-TrWr-mwUEqJ99bU",
+      authDomain: "agenda-1fdcf.firebaseapp.com",
+      projectId: "agenda-1fdcf",
+      storageBucket: "agenda-1fdcf.firebasestorage.app",
+      messagingSenderId: "453064478678",
+      appId: "1:453064478678:web:9e84ea027c92e09c4d5e77",
+      measurementId: "G-BHCVE6FKE6"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Usaremos un único documento: agendas/default
+    // Documento único donde guardamos todo
     const agendaRef = doc(db, "agendas", "default");
 
-    // ===========================
-    // 2. ESTADO LOCAL
-    // ===========================
     let courses = [];
 
-    function isEnterKey(e) {
-      return (
-        e.key === "Enter" ||
-        e.key === "Return" ||
-        e.code === "Enter" ||
-        e.code === "NumpadEnter"
-      );
+    function isEnter(e) {
+      return e.key === "Enter" || e.code === "Enter" || e.keyCode === 13;
     }
 
-    // Guardar en Firestore
     async function saveToFirebase() {
       try {
         await setDoc(agendaRef, { courses }, { merge: true });
-        // De paso, guardamos también en localStorage por si estás offline
-        localStorage.setItem("mini_agenda_cursos_v1", JSON.stringify(courses));
-      } catch (err) {
-        console.error("Error guardando en Firebase:", err);
+        localStorage.setItem("agenda_cursos_v1", JSON.stringify(courses));
+      } catch (e) {
+        console.error("Error guardando:", e);
       }
     }
 
-    // ===========================
-    // 3. RENDER
-    // ===========================
-    function renderCourses() {
+    // RENDER
+    function render() {
       const container = document.getElementById("courses");
       container.innerHTML = "";
 
-      if (!courses || courses.length === 0) {
-        const msg = document.createElement("p");
-        msg.className = "empty-msg";
-        msg.textContent =
-          "Aún no tienes cursos. Empieza arriba escribiendo uno y pulsando Return/Enter.";
-        container.appendChild(msg);
-        return;
-      }
-
-      courses.forEach((course, cIndex) => {
+      courses.forEach((course, ci) => {
         const card = document.createElement("div");
         card.className = "course-card";
 
@@ -267,155 +143,134 @@
         title.className = "course-title";
         title.textContent = course.name;
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "delete-course";
-        deleteBtn.title = "Eliminar curso";
-        deleteBtn.textContent = "×";
-        deleteBtn.addEventListener("click", async () => {
-          if (confirm("¿Eliminar este curso y todas sus notas?")) {
-            courses.splice(cIndex, 1);
+        const delBtn = document.createElement("button");
+        delBtn.className = "delete-course";
+        delBtn.textContent = "×";
+        delBtn.onclick = async () => {
+          if (confirm("¿Eliminar curso?")) {
+            courses.splice(ci, 1);
             await saveToFirebase();
-            renderCourses();
+            render();
           }
-        });
+        };
 
         header.appendChild(title);
-        header.appendChild(deleteBtn);
+        header.appendChild(delBtn);
 
         const columns = document.createElement("div");
         columns.className = "course-columns";
 
-        // ========== COLUMNA IZQUIERDA: TEMAS / TAREAS ==========
-        const leftCol = document.createElement("div");
-        leftCol.className = "course-column";
+        // ===== COLUMNA 1 (Left) =====
+        const left = document.createElement("div");
+        left.className = "course-column";
 
         const leftTitle = document.createElement("p");
         leftTitle.className = "column-title";
-        leftTitle.textContent = "Temas / tareas";
+        leftTitle.textContent = "Temas / Tareas";
 
         const leftList = document.createElement("ul");
         leftList.className = "task-list";
 
-        (course.left || []).forEach((task, tIndex) => {
+        (course.left || []).forEach((task, ti) => {
           const li = document.createElement("li");
-          const label = document.createElement("label");
-          label.className = "task" + (task.done ? " task-done" : "");
 
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = !!task.done;
-          checkbox.addEventListener("change", async () => {
-            courses[cIndex].left[tIndex].done = checkbox.checked;
+          const lbl = document.createElement("label");
+          lbl.className = "task" + (task.done ? " task-done" : "");
+
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.checked = task.done;
+          cb.onchange = async () => {
+            courses[ci].left[ti].done = cb.checked;
             await saveToFirebase();
-            renderCourses();
-          });
+            render();
+          };
 
-          const span = document.createElement("span");
-          span.textContent = task.text;
+          const sp = document.createElement("span");
+          sp.textContent = task.text;
 
-          label.appendChild(checkbox);
-          label.appendChild(span);
-          li.appendChild(label);
+          lbl.appendChild(cb);
+          lbl.appendChild(sp);
+          li.appendChild(lbl);
           leftList.appendChild(li);
         });
 
         const leftInput = document.createElement("input");
-        leftInput.type = "text";
         leftInput.className = "new-task-input";
-        leftInput.autocomplete = "off";
-        leftInput.autocapitalize = "sentences";
-        leftInput.inputMode = "text";
-        leftInput.placeholder =
-          "Nueva tarea (Ej: Tema: Heterogeneidad) y Return/Enter…";
-
-        const handleLeftInput = async (e) => {
-          if (isEnterKey(e)) {
-            e.preventDefault();
-            const text = leftInput.value.trim();
-            if (text !== "") {
-              if (!courses[cIndex].left) courses[cIndex].left = [];
-              courses[cIndex].left.push({ text, done: false });
+        leftInput.placeholder = "Nueva tarea y Enter…";
+        leftInput.onkeydown = async (e) => {
+          if (isEnter(e)) {
+            const t = leftInput.value.trim();
+            if (t !== "") {
+              courses[ci].left.push({ text: t, done: false });
               leftInput.value = "";
               await saveToFirebase();
-              renderCourses();
+              render();
             }
           }
         };
 
-        leftInput.addEventListener("keydown", handleLeftInput);
-        leftInput.addEventListener("keypress", handleLeftInput);
+        left.appendChild(leftTitle);
+        left.appendChild(leftList);
+        left.appendChild(leftInput);
 
-        leftCol.appendChild(leftTitle);
-        leftCol.appendChild(leftList);
-        leftCol.appendChild(leftInput);
-
-        // ========== COLUMNA DERECHA: PREGUNTAS / NOTAS ==========
-        const rightCol = document.createElement("div");
-        rightCol.className = "course-column";
+        // ===== COLUMNA 2 (Right) =====
+        const right = document.createElement("div");
+        right.className = "course-column";
 
         const rightTitle = document.createElement("p");
         rightTitle.className = "column-title";
-        rightTitle.textContent = "Preguntas / notas";
+        rightTitle.textContent = "Preguntas / Notas";
 
         const rightList = document.createElement("ul");
         rightList.className = "task-list";
 
-        (course.right || []).forEach((task, tIndex) => {
+        (course.right || []).forEach((task, ti) => {
           const li = document.createElement("li");
-          const label = document.createElement("label");
-          label.className = "task" + (task.done ? " task-done" : "");
 
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = !!task.done;
-          checkbox.addEventListener("change", async () => {
-            courses[cIndex].right[tIndex].done = checkbox.checked;
+          const lbl = document.createElement("label");
+          lbl.className = "task" + (task.done ? " task-done" : "");
+
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.checked = task.done;
+          cb.onchange = async () => {
+            courses[ci].right[ti].done = cb.checked;
             await saveToFirebase();
-            renderCourses();
-          });
+            render();
+          };
 
-          const span = document.createElement("span");
-          span.textContent = task.text;
+          const sp = document.createElement("span");
+          sp.textContent = task.text;
 
-          label.appendChild(checkbox);
-          label.appendChild(span);
-          li.appendChild(label);
+          lbl.appendChild(cb);
+          lbl.appendChild(sp);
+          li.appendChild(lbl);
           rightList.appendChild(li);
         });
 
         const rightInput = document.createElement("input");
-        rightInput.type = "text";
         rightInput.className = "new-task-input";
-        rightInput.autocomplete = "off";
-        rightInput.autocapitalize = "sentences";
-        rightInput.inputMode = "text";
-        rightInput.placeholder =
-          "Nueva nota (Ej: ¿Profe, cuándo serán los finales?) y Return/Enter…";
-
-        const handleRightInput = async (e) => {
-          if (isEnterKey(e)) {
-            e.preventDefault();
-            const text = rightInput.value.trim();
-            if (text !== "") {
-              if (!courses[cIndex].right) courses[cIndex].right = [];
-              courses[cIndex].right.push({ text, done: false });
+        rightInput.placeholder = "Nueva nota y Enter…";
+        rightInput.onkeydown = async (e) => {
+          if (isEnter(e)) {
+            const t = rightInput.value.trim();
+            if (t !== "") {
+              courses[ci].right.push({ text: t, done: false });
               rightInput.value = "";
               await saveToFirebase();
-              renderCourses();
+              render();
             }
           }
         };
 
-        rightInput.addEventListener("keydown", handleRightInput);
-        rightInput.addEventListener("keypress", handleRightInput);
+        right.appendChild(rightTitle);
+        right.appendChild(rightList);
+        right.appendChild(rightInput);
 
-        rightCol.appendChild(rightTitle);
-        rightCol.appendChild(rightList);
-        rightCol.appendChild(rightInput);
-
-        // Añadimos las dos columnas al card
-        columns.appendChild(leftCol);
-        columns.appendChild(rightCol);
+        // Añadir columnas al card
+        columns.appendChild(left);
+        columns.appendChild(right);
 
         card.appendChild(header);
         card.appendChild(columns);
@@ -423,82 +278,41 @@
       });
     }
 
-    // ===========================
-    // 4. LÓGICA DE CURSOS
-    // ===========================
-    function addCourse(name) {
-      courses.push({
-        name,
-        left: [],
-        right: []
-      });
-      return saveToFirebase().then(renderCourses);
-    }
-
-    // ===========================
-    // 5. INICIO: LEER FIREBASE Y ESCUCHAR CAMBIOS
-    // ===========================
+    // INICIO: LEER FIREBASE
     async function init() {
-      // Cargar de localStorage como backup
-      try {
-        const local = localStorage.getItem("mini_agenda_cursos_v1");
-        if (local) {
-          courses = JSON.parse(local) || [];
-        }
-      } catch (e) {
-        courses = [];
-      }
-      renderCourses();
+      const local = localStorage.getItem("agenda_cursos_v1");
+      if (local) courses = JSON.parse(local);
 
-      // Cargar desde Firebase una vez
-      try {
-        const snap = await getDoc(agendaRef);
-        if (snap.exists()) {
-          const data = snap.data();
-          if (Array.isArray(data.courses)) {
-            courses = data.courses;
-            localStorage.setItem(
-              "mini_agenda_cursos_v1",
-              JSON.stringify(courses)
-            );
-            renderCourses();
-          }
-        } else {
-          await setDoc(agendaRef, { courses: [] });
-        }
-      } catch (e) {
-        console.error("Error inicial leyendo Firebase:", e);
+      render();
+
+      const snap = await getDoc(agendaRef);
+      if (snap.exists()) {
+        courses = snap.data().courses || [];
+        localStorage.setItem("agenda_cursos_v1", JSON.stringify(courses));
+        render();
       }
 
-      // Escuchar cambios en tiempo real
+      // Escucha cambios en TIEMPO REAL
       onSnapshot(agendaRef, (snap) => {
         if (snap.exists()) {
-          const data = snap.data();
-          if (Array.isArray(data.courses)) {
-            courses = data.courses;
-            localStorage.setItem(
-              "mini_agenda_cursos_v1",
-              JSON.stringify(courses)
-            );
-            renderCourses();
-          }
+          courses = snap.data().courses || [];
+          localStorage.setItem("agenda_cursos_v1", JSON.stringify(courses));
+          render();
         }
       });
 
-      // Input de nuevo curso
       const newCourseInput = document.getElementById("new-course-input");
-      const handleCourseInput = async (e) => {
-        if (isEnterKey(e)) {
-          e.preventDefault();
-          const text = newCourseInput.value.trim();
-          if (text !== "") {
+      newCourseInput.onkeydown = async (e) => {
+        if (isEnter(e)) {
+          const name = newCourseInput.value.trim();
+          if (name !== "") {
+            courses.push({ name, left: [], right: [] });
             newCourseInput.value = "";
-            await addCourse(text);
+            await saveToFirebase();
+            render();
           }
         }
       };
-      newCourseInput.addEventListener("keydown", handleCourseInput);
-      newCourseInput.addEventListener("keypress", handleCourseInput);
     }
 
     init();
