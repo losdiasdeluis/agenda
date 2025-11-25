@@ -28,62 +28,130 @@
     }
     h1 { margin: 0 0 4px 0; font-size: 22px; }
     .hint { margin: 0 0 16px 0; font-size: 13px; color: var(--text-muted); }
-    .new-course { margin-bottom: 16px; }
+
+    .row-input {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .row-input input[type="text"] {
+      flex: 1;
+    }
     input[type="text"] {
-      width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 14px;
-      border: 1px solid var(--border); outline: none;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      outline: none;
+      background: #ffffff;
     }
     input[type="text"]:focus { border-color: var(--accent); }
+
+    button.small {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
     .courses { display: flex; flex-direction: column; gap: 12px; }
     .course-card {
-      background: var(--card); border-radius: 12px;
-      padding: 12px; border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
     }
     .course-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 8px; gap: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
     }
     .course-title {
-      font-size: 18px; text-decoration: underline; text-underline-offset: 3px;
+      font-size: 18px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
     .delete-course {
-      border: none; background: transparent; cursor: pointer; font-size: 16px;
-      color: var(--text-muted); padding: 2px 4px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-muted);
+      padding: 2px 4px;
     }
+
     .course-columns {
-      display: flex; flex-direction: column; gap: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
     @media (min-width: 640px) {
       .course-columns { flex-direction: row; }
     }
     .course-column { flex: 1; min-width: 0; }
     .column-title {
-      font-size: 13px; color: var(--text-muted); margin: 0 0 4px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 0 4px 0;
     }
+
     ul.task-list {
-      list-style: none; padding: 0; margin: 0 0 4px 0;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 4px 0;
     }
     .task {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 14px; padding: 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      padding: 2px 0;
     }
-    .task input { width: 16px; height: 16px; }
-    .task-done span { text-decoration: line-through; opacity: 0.6; }
-    .new-task-input { font-size: 13px; padding: 6px 8px; }
+    .task input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+    }
+    .task-done span {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .empty-msg {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <h1>Mini agenda de cursos</h1>
-    <p class="hint">Escribe un curso y pulsa Return/Enter. Se sincroniza entre dispositivos con Firebase.</p>
-    <div class="new-course">
+    <p class="hint">
+      Escribe un curso y pulsa Enter/Return o toca “+”.  
+      Dentro de cada curso, escribe tareas o notas y usa Enter o “+”.  
+      Las tareas se sincronizan entre tus dispositivos y se tachan al marcar el círculo.
+    </p>
+
+    <div class="row-input">
       <input id="new-course-input" type="text"
              autocomplete="off"
              autocapitalize="sentences"
              inputmode="text"
-             placeholder="Nuevo curso y Enter…" />
+             placeholder="Nuevo curso (por ejemplo: Econometría)…" />
+      <button id="add-course-btn" class="small">+</button>
     </div>
+
     <div id="courses" class="courses"></div>
+    <p id="no-courses-msg" class="empty-msg" style="display:none;">
+      Aún no tienes cursos. Empieza arriba escribiendo uno.
+    </p>
   </div>
 
   <script type="module">
@@ -96,6 +164,7 @@
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+    // Tu config de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyC06Tx-JKDMP8gxhVn-TrWr-mwUEqJ99bU",
       authDomain: "agenda-1fdcf.firebaseapp.com",
@@ -112,16 +181,9 @@
 
     let courses = [];
 
-    function isEnter(e) {
-      // Cubrimos varios casos de iOS
-      return (
-        e.key === "Enter" ||
-        e.key === "Return" ||
-        e.key === "Go" ||
-        e.key === "Done" ||
-        e.keyCode === 13 ||
-        e.which === 13
-      );
+    function isEnter(event) {
+      // Versión simple que suele funcionar en la mayoría de navegadores
+      return event.key === "Enter" || event.keyCode === 13;
     }
 
     async function saveToFirebase() {
@@ -135,7 +197,15 @@
 
     function render() {
       const container = document.getElementById("courses");
+      const noCoursesMsg = document.getElementById("no-courses-msg");
       container.innerHTML = "";
+
+      if (!courses || courses.length === 0) {
+        noCoursesMsg.style.display = "block";
+        return;
+      } else {
+        noCoursesMsg.style.display = "none";
+      }
 
       courses.forEach((course, ci) => {
         const card = document.createElement("div");
@@ -152,7 +222,7 @@
         delBtn.className = "delete-course";
         delBtn.textContent = "×";
         delBtn.onclick = async () => {
-          if (confirm("¿Eliminar curso?")) {
+          if (confirm("¿Eliminar este curso y todas sus notas?")) {
             courses.splice(ci, 1);
             await saveToFirebase();
             render();
@@ -165,128 +235,158 @@
         const columns = document.createElement("div");
         columns.className = "course-columns";
 
-        // Columna izquierda
-        const left = document.createElement("div");
-        left.className = "course-column";
+        // ===== COLUMNA IZQUIERDA: Temas / tareas =====
+        const leftCol = document.createElement("div");
+        leftCol.className = "course-column";
 
         const leftTitle = document.createElement("p");
         leftTitle.className = "column-title";
-        leftTitle.textContent = "Temas / Tareas";
+        leftTitle.textContent = "Temas / tareas";
 
         const leftList = document.createElement("ul");
         leftList.className = "task-list";
 
         (course.left || []).forEach((task, ti) => {
           const li = document.createElement("li");
-          const lbl = document.createElement("label");
-          lbl.className = "task" + (task.done ? " task-done" : "");
+          const label = document.createElement("label");
+          label.className = "task" + (task.done ? " task-done" : "");
 
           const cb = document.createElement("input");
           cb.type = "checkbox";
-          cb.checked = task.done;
+          cb.checked = !!task.done;
           cb.onchange = async () => {
             courses[ci].left[ti].done = cb.checked;
             await saveToFirebase();
             render();
           };
 
-          const sp = document.createElement("span");
-          sp.textContent = task.text;
+          const span = document.createElement("span");
+          span.textContent = task.text;
 
-          lbl.appendChild(cb);
-          lbl.appendChild(sp);
-          li.appendChild(lbl);
+          label.appendChild(cb);
+          label.appendChild(span);
+          li.appendChild(label);
           leftList.appendChild(li);
         });
 
+        const leftInputRow = document.createElement("div");
+        leftInputRow.className = "row-input";
+        leftInputRow.style.marginBottom = "0";
+
         const leftInput = document.createElement("input");
+        leftInput.type = "text";
         leftInput.className = "new-task-input";
+        leftInput.placeholder = "Nueva tarea (ej: Tema: Heterogeneidad)…";
         leftInput.autocomplete = "off";
         leftInput.autocapitalize = "sentences";
         leftInput.inputMode = "text";
-        leftInput.placeholder = "Nueva tarea y Enter…";
 
-        const handleLeft = async (e) => {
-          if (!isEnter(e)) return;
-          e.preventDefault();
-          const t = leftInput.value.trim();
-          if (t === "") return;
+        const leftBtn = document.createElement("button");
+        leftBtn.className = "small";
+        leftBtn.textContent = "+";
+
+        async function addLeftTask() {
+          const text = leftInput.value.trim();
+          if (!text) return;
           if (!courses[ci].left) courses[ci].left = [];
-          courses[ci].left.push({ text: t, done: false });
+          courses[ci].left.push({ text, done: false });
           leftInput.value = "";
           await saveToFirebase();
           render();
-        };
+        }
 
-        leftInput.addEventListener("keydown", handleLeft);
-        leftInput.addEventListener("keypress", handleLeft);
+        leftInput.addEventListener("keydown", async (e) => {
+          if (isEnter(e)) {
+            e.preventDefault();
+            await addLeftTask();
+          }
+        });
+        leftBtn.onclick = addLeftTask;
 
-        left.appendChild(leftTitle);
-        left.appendChild(leftList);
-        left.appendChild(leftInput);
+        leftInputRow.appendChild(leftInput);
+        leftInputRow.appendChild(leftBtn);
 
-        // Columna derecha
-        const right = document.createElement("div");
-        right.className = "course-column";
+        leftCol.appendChild(leftTitle);
+        leftCol.appendChild(leftList);
+        leftCol.appendChild(leftInputRow);
+
+        // ===== COLUMNA DERECHA: Preguntas / notas =====
+        const rightCol = document.createElement("div");
+        rightCol.className = "course-column";
 
         const rightTitle = document.createElement("p");
         rightTitle.className = "column-title";
-        rightTitle.textContent = "Preguntas / Notas";
+        rightTitle.textContent = "Preguntas / notas";
 
         const rightList = document.createElement("ul");
         rightList.className = "task-list";
 
         (course.right || []).forEach((task, ti) => {
           const li = document.createElement("li");
-          const lbl = document.createElement("label");
-          lbl.className = "task" + (task.done ? " task-done" : "");
+          const label = document.createElement("label");
+          label.className = "task" + (task.done ? " task-done" : "");
 
           const cb = document.createElement("input");
           cb.type = "checkbox";
-          cb.checked = task.done;
+          cb.checked = !!task.done;
           cb.onchange = async () => {
             courses[ci].right[ti].done = cb.checked;
             await saveToFirebase();
             render();
           };
 
-          const sp = document.createElement("span");
-          sp.textContent = task.text;
+          const span = document.createElement("span");
+          span.textContent = task.text;
 
-          lbl.appendChild(cb);
-          lbl.appendChild(sp);
-          li.appendChild(lbl);
+          label.appendChild(cb);
+          label.appendChild(span);
+          li.appendChild(label);
           rightList.appendChild(li);
         });
 
+        const rightInputRow = document.createElement("div");
+        rightInputRow.className = "row-input";
+        rightInputRow.style.marginBottom = "0";
+
         const rightInput = document.createElement("input");
+        rightInput.type = "text";
         rightInput.className = "new-task-input";
+        rightInput.placeholder = "Nueva nota (ej: ¿Cuándo es el final?)…";
         rightInput.autocomplete = "off";
         rightInput.autocapitalize = "sentences";
         rightInput.inputMode = "text";
-        rightInput.placeholder = "Nueva nota y Enter…";
 
-        const handleRight = async (e) => {
-          if (!isEnter(e)) return;
-          e.preventDefault();
-          const t = rightInput.value.trim();
-          if (t === "") return;
+        const rightBtn = document.createElement("button");
+        rightBtn.className = "small";
+        rightBtn.textContent = "+";
+
+        async function addRightTask() {
+          const text = rightInput.value.trim();
+          if (!text) return;
           if (!courses[ci].right) courses[ci].right = [];
-          courses[ci].right.push({ text: t, done: false });
+          courses[ci].right.push({ text, done: false });
           rightInput.value = "";
           await saveToFirebase();
           render();
-        };
+        }
 
-        rightInput.addEventListener("keydown", handleRight);
-        rightInput.addEventListener("keypress", handleRight);
+        rightInput.addEventListener("keydown", async (e) => {
+          if (isEnter(e)) {
+            e.preventDefault();
+            await addRightTask();
+          }
+        });
+        rightBtn.onclick = addRightTask;
 
-        right.appendChild(rightTitle);
-        right.appendChild(rightList);
-        right.appendChild(rightInput);
+        rightInputRow.appendChild(rightInput);
+        rightInputRow.appendChild(rightBtn);
 
-        columns.appendChild(left);
-        columns.appendChild(right);
+        rightCol.appendChild(rightTitle);
+        rightCol.appendChild(rightList);
+        rightCol.appendChild(rightInputRow);
+
+        columns.appendChild(leftCol);
+        columns.appendChild(rightCol);
 
         card.appendChild(header);
         card.appendChild(columns);
@@ -326,18 +426,24 @@
       });
 
       const newCourseInput = document.getElementById("new-course-input");
-      const handleCourse = async (e) => {
-        if (!isEnter(e)) return;
-        e.preventDefault();
+      const addCourseBtn = document.getElementById("add-course-btn");
+
+      async function addCourse() {
         const name = newCourseInput.value.trim();
-        if (name === "") return;
+        if (!name) return;
         courses.push({ name, left: [], right: [] });
         newCourseInput.value = "";
         await saveToFirebase();
         render();
-      };
-      newCourseInput.addEventListener("keydown", handleCourse);
-      newCourseInput.addEventListener("keypress", handleCourse);
+      }
+
+      newCourseInput.addEventListener("keydown", async (e) => {
+        if (isEnter(e)) {
+          e.preventDefault();
+          await addCourse();
+        }
+      });
+      addCourseBtn.onclick = addCourse;
     }
 
     init();
